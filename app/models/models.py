@@ -29,7 +29,7 @@ class User(Base):
 
     addresses: Mapped[list[Address]] = relationship(back_populates="user", cascade="all, delete-orphan")
     payment_methods: Mapped[list[PaymentMethod]] = relationship(back_populates="user", cascade="all, delete-orphan")
-    wishlist_items: Mapped[list[Wishlist]] = relationship(back_populates="user", cascade="all, delete-orphan")
+    wishlist_items: Mapped[list["OldWishlist"]] = relationship(back_populates="user", cascade="all, delete-orphan")
 
 
 class Category(Base):
@@ -162,10 +162,15 @@ class Order(Base):
     savings: Mapped[float] = mapped_column(DECIMAL(10, 2), default=0.00)
     total: Mapped[float] = mapped_column(DECIMAL(10, 2))
     status: Mapped[str] = mapped_column(String(50), default="pending")
+    shipping_address_id: Mapped[int | None] = mapped_column(ForeignKey("addresses.id", ondelete="SET NULL"), nullable=True)
+    payment_method_id: Mapped[int | None] = mapped_column(ForeignKey("payment_methods.id", ondelete="SET NULL"), nullable=True)
+    tracking_number: Mapped[str | None] = mapped_column(String(100), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     items: Mapped[list[OrderItem]] = relationship(back_populates="order", cascade="all, delete-orphan")
+    shipping_address: Mapped[Address | None] = relationship("Address", foreign_keys=[shipping_address_id])
+    payment_method: Mapped[PaymentMethod | None] = relationship("PaymentMethod", foreign_keys=[payment_method_id])
 
 
 class OrderItem(Base):
@@ -190,12 +195,14 @@ class Review(Base):
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))
     rating: Mapped[int] = mapped_column(Integer)
     comment: Mapped[str | None] = mapped_column(Text, nullable=True)
+    helpful_count: Mapped[int] = mapped_column(Integer, default=0)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
 
     product: Mapped[Product] = relationship(back_populates="reviews")
 
 
-class Wishlist(Base):
+class OldWishlist(Base):
+    """Old single wishlist model - kept for backward compatibility"""
     __tablename__ = "wishlist"
     __table_args__ = (UniqueConstraint("user_id", "product_id", name="unique_user_wishlist"),)
 

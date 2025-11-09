@@ -4,7 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, delete
 
 from app.db.session import get_db
-from app.models import User, Wishlist, Address, PaymentMethod, Order, Product
+from app.models import User, OldWishlist, Address, PaymentMethod, Order, Product
 from app.schemas import (
     UserPublic,
     WishlistCreate,
@@ -36,16 +36,16 @@ async def update_profile(payload: UserPublic, current_user: User = Depends(get_c
 
 @router.get("/wishlist", response_model=List[WishlistPublic])
 async def list_wishlist(current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
-    res = await db.execute(select(Wishlist).where(Wishlist.user_id == current_user.id))
+    res = await db.execute(select(OldWishlist).where(OldWishlist.user_id == current_user.id))
     return res.scalars().all()
 
 
 @router.post("/wishlist", response_model=WishlistPublic, status_code=201)
 async def add_wishlist(payload: WishlistCreate, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
-    exists = await db.execute(select(Wishlist).where(Wishlist.user_id == current_user.id, Wishlist.product_id == payload.product_id))
+    exists = await db.execute(select(OldWishlist).where(OldWishlist.user_id == current_user.id, OldWishlist.product_id == payload.product_id))
     if exists.scalar_one_or_none():
         raise HTTPException(status_code=400, detail="Already in wishlist")
-    item = Wishlist(user_id=current_user.id, product_id=payload.product_id)
+    item = OldWishlist(user_id=current_user.id, product_id=payload.product_id)
     db.add(item)
     await db.commit()
     await db.refresh(item)
@@ -54,7 +54,7 @@ async def add_wishlist(payload: WishlistCreate, current_user: User = Depends(get
 
 @router.delete("/wishlist/{id}", status_code=204)
 async def remove_wishlist(id: int, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
-    await db.execute(delete(Wishlist).where(Wishlist.id == id, Wishlist.user_id == current_user.id))
+    await db.execute(delete(OldWishlist).where(OldWishlist.id == id, OldWishlist.user_id == current_user.id))
     await db.commit()
     return None
 

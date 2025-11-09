@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from datetime import datetime
 from typing import Optional, List
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, field_validator
 
 
 class Message(BaseModel):
@@ -20,6 +20,15 @@ class UserCreate(BaseModel):
     name: str
     email: EmailStr
     password: str
+    
+    @field_validator('password')
+    @classmethod
+    def validate_password(cls, v: str) -> str:
+        if len(v.encode('utf-8')) > 72:
+            raise ValueError('Password cannot be longer than 72 bytes')
+        if len(v) < 6:
+            raise ValueError('Password must be at least 6 characters long')
+        return v
 
 
 class UserLogin(BaseModel):
