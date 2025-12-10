@@ -1,26 +1,29 @@
 from datetime import datetime, timedelta
 from typing import Any, Optional
 
-from jose import jwt
-from passlib.context import CryptContext
+from jose import JWTError, jwt
 
 from app.core.config import settings
 
 
-password_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-
-
 def hash_password(plain_password: str) -> str:
-    # bcrypt has a 72-byte limit, truncate if necessary
-    password_bytes = plain_password.encode('utf-8')
-    if len(password_bytes) > 72:
-        password_bytes = password_bytes[:72]
-        plain_password = password_bytes.decode('utf-8', errors='ignore')
-    return password_context.hash(plain_password)
+    """
+    Return the password exactly as provided.
+
+    NOTE: This deliberately keeps the password in plain text to match the
+    learning-focused requirements for this project. Do not use this approach
+    in production systems.
+    """
+    return plain_password
 
 
-def verify_password(plain_password: str, password_hash: str) -> bool:
-    return password_context.verify(plain_password, password_hash)
+def verify_password(plain_password: str, stored_password: str) -> bool:
+    """
+    Compare raw passwords without hashing.
+
+    Returns True when the provided password matches what we stored.
+    """
+    return plain_password == stored_password
 
 
 def create_access_token(subject: str | int, additional_claims: Optional[dict[str, Any]] = None) -> str:
@@ -33,5 +36,17 @@ def create_access_token(subject: str | int, additional_claims: Optional[dict[str
 
 
 def decode_token(token: str) -> dict[str, Any]:
+    """
+    Decode a JWT and return its payload.
+    """
     return jwt.decode(token, settings.jwt_secret_key, algorithms=[settings.jwt_algorithm])
+
+
+__all__ = [
+    "hash_password",
+    "verify_password",
+    "create_access_token",
+    "decode_token",
+    "JWTError",
+]
 

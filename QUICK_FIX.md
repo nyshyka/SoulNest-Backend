@@ -89,3 +89,7 @@ Your backend server is running ✅, MySQL is running ✅, but the **database doe
 
 Once you run the seed script, your 500 errors should be fixed!
 
+
+
+
+
