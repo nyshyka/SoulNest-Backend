@@ -12,28 +12,19 @@ class Message(BaseModel):
 # Auth / User
 class UserBase(BaseModel):
     name: str
-    email: EmailStr
+    email: str
     is_guest: bool = False
 
 
 class UserCreate(BaseModel):
-    name: str
-    email: EmailStr
-    password: str
-    
-    @field_validator('password')
-    @classmethod
-    def validate_password(cls, v: str) -> str:
-        if len(v.encode('utf-8')) > 72:
-            raise ValueError('Password cannot be longer than 72 bytes')
-        if len(v) < 6:
-            raise ValueError('Password must be at least 6 characters long')
-        return v
+    name: str = ""
+    email: str = ""
+    password: str = ""
 
 
 class UserLogin(BaseModel):
-    email: EmailStr
-    password: str
+    email: str = ""
+    password: str = ""
 
 
 class Token(BaseModel):
